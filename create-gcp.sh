@@ -1,3 +1,4 @@
+# create copy of public key and modify accordingly
 gcloud compute project-info describe \
   --format="value(commonInstanceMetadata[items][ssh-keys])"
 
@@ -5,16 +6,30 @@ ssh_key=$(cat ~/.ssh/id_rsa.pub)
 
 touch gcp_key.pub 
 
-echo 'pdcnguyen':$ssh_key > gcp_key.pub
+echo 'nguyen@nguyensPC':$ssh_key > gcp_key.pub
 
-gcloud compute project-info add-metadata --metadata-from-file=ssh-keys=gcp_key.pub
 
-gcloud compute firewall-rules create cc-rules --allow tcp:22,icmp  --source-tags=cloud-computing
+# upload key
+gcloud compute project-info add-metadata \
+  --metadata-from-file=ssh-keys=gcp_key.pub
 
-gcloud compute instances create cc-instance --image-family=ubuntu-1804-lts --image-project=ubuntu-os-cloud --zone=europe-west3-c --machine-type=e2-standard-2 --tags=cloud-computing
+# create firewall rules
+gcloud compute firewall-rules create cc-rules \
+  --allow tcp:22,icmp \
+  --source-tags=cloud-computing
 
+# create instance
+gcloud compute instances create cc-instance \
+  --image-family=ubuntu-1804-lts \
+  --image-project=ubuntu-os-cloud \
+  --zone=europe-west3-c \
+  --machine-type=e2-standard-2 \
+  --tags=cloud-computing
+
+# get instance state
 ins_state=$(gcloud compute instances describe cc-instance --zone=europe-west3-c --format="value(status)")
 
+# check instance state for ready
 while [ $ins_state != "RUNNING" ]
 do
     sleep 5
@@ -23,4 +38,5 @@ ins_state=$(gcloud compute instances describe cc-instance --zone=europe-west3-c 
 
 done
 
+# resize instance disk
 yes | gcloud compute disks resize cc-instance --zone=europe-west3-c --size 100
