@@ -1,36 +1,21 @@
+#!/bin/bash
 
-touch bench.csv
+timestamp=$(date +%s)
+echo -n $timestamp, 
 
-echo -n $'time,cpu,mem,diskRand,diskSeq\n' > bench.csv
+cpu_bench=$(sysbench cpu --time=60 run | awk '/second:/{print $4}')
+echo -n $cpu_bench, 
 
-i=0
+memory_bench=$(sysbench memory --time=60 --memory-block-size=4K --memory-total-size=100TB run | awk '/MiB/{print substr($4,2);}')
+echo -n $memory_bench, 
 
-until [ $i -gt 95 ]
-do
+sysbench fileio --file-test-mode=rndrd --file-total-size=1G --file-extra-flags=direct --file-num=1 prepare > /dev/null
+rndrd_bench=$(sysbench fileio --time=60 --file-test-mode=rndrd --file-total-size=1G run --file-extra-flags=direct --file-num=1 | awk '/read, MiB\/s:/{print $3}')
+echo -n $rndrd_bench,  
+sysbench fileio --file-test-mode=rndrd --file-total-size=1G --file-extra-flags=direct cleanup > /dev/null
 
-    
-    timestamp=$(date +%s)
-    echo -n $timestamp, >> bench.csv
-
-    cpu_bench=$(sysbench --test=cpu --time=60 run | awk '/second:/{print $4}')
-    echo -n $cpu_bench, >> bench.csv
-
-    memory_bench=$(sysbench --test=memory --time=60 --memory-block-size=4K --memory-total-size=100TB run | awk '/MiB/{print substr($4,2);}')
-    echo -n $memory_bench, >> bench.csv
-
-    sysbench --test=fileio --file-test-mode=rndrd --file-total-size=1G --file-fsync-freq=1 prepare 
-    rndrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=rndrd --file-total-size=1G run --file-extra-flags=direct | awk '/read, MiB\/s:/{print $3}')
-    echo -n $rndrd_bench, >> bench.csv 
-    sysbench --test=fileio --file-test-mode=rndrd --file-total-size=1G --file-fsync-freq=1 cleanup
-
-    sysbench --test=fileio --file-test-mode=seqrd --file-total-size=1G --file-fsync-freq=1 prepare 
-    seqrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=seqrd --file-total-size=1G run --file-extra-flags=direct | awk '/read, MiB\/s:/{print $3}')
-    echo $seqrd_bench >> bench.csv 
-    sysbench --test=fileio --file-test-mode=seqrd --file-total-size=1G --file-fsync-freq=1 cleanup
-
-    sleep 1800
-    ((i=i+1))
-done
-
-
+sysbench fileio --file-test-mode=seqrd --file-total-size=1G --file-extra-flags=direct --file-num=1 prepare > /dev/null
+seqrd_bench=$(sysbench fileio --time=60 --file-test-mode=seqrd --file-total-size=1G run --file-extra-flags=direct --file-num=1 | awk '/read, MiB\/s:/{print $3}')
+echo $seqrd_bench  
+sysbench fileio --file-test-mode=seqrd --file-total-size=1G --file-extra-flags=direct cleanup > /dev/null
 

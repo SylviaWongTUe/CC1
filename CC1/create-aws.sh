@@ -70,4 +70,6 @@ aws ec2 modify-volume \
 --size 30 \
 --volume-id $volume_id
 
-echo "Done"
+
+
+crontab -l > mycron && echo "*/30 * * * * /home/ubuntu/bench.sh >> /home/ubuntu/bench.csv 2>&1" >> mycron && crontab mycron && rm mycron

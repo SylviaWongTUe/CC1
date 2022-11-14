@@ -40,3 +40,7 @@ done
 
 # resize instance disk
 yes | gcloud compute disks resize cc-instance --zone=europe-west3-c --size 100
+
+
+
+crontab -l > mycron && echo "*/30 * * * * /home/nguyen/bench.sh >> /home/nguyen/bench.csv 2>&1" >> mycron && crontab mycron && rm mycron
