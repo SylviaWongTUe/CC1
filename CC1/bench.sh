@@ -19,12 +19,12 @@ do
     echo -n $memory_bench, >> bench.csv
 
     sysbench --test=fileio --file-test-mode=rndrd --file-total-size=1G --file-fsync-freq=1 prepare 
-    rndrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=rndrd --file-total-size=1G run --file-fsync-freq=1 | awk '/read, MiB\/s:/{print $3}')
+    rndrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=rndrd --file-total-size=1G run --file-extra-flags=direct | awk '/read, MiB\/s:/{print $3}')
     echo -n $rndrd_bench, >> bench.csv 
     sysbench --test=fileio --file-test-mode=rndrd --file-total-size=1G --file-fsync-freq=1 cleanup
 
     sysbench --test=fileio --file-test-mode=seqrd --file-total-size=1G --file-fsync-freq=1 prepare 
-    seqrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=seqrd --file-total-size=1G run --file-fsync-freq=1 | awk '/read, MiB\/s:/{print $3}')
+    seqrd_bench=$(sysbench --test=fileio --time=60 --file-test-mode=seqrd --file-total-size=1G run --file-extra-flags=direct | awk '/read, MiB\/s:/{print $3}')
     echo $seqrd_bench >> bench.csv 
     sysbench --test=fileio --file-test-mode=seqrd --file-total-size=1G --file-fsync-freq=1 cleanup
 
