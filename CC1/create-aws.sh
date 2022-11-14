@@ -67,7 +67,7 @@ volume_id=$(aws ec2 describe-volumes \
     --query 'Volumes[0].VolumeId')
 
 aws ec2 modify-volume \
---size 100 \
+--size 30 \
 --volume-id $volume_id
 
 echo "Done"
