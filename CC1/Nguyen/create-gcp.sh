@@ -6,7 +6,7 @@ ssh_key=$(cat ~/.ssh/id_rsa.pub)
 
 touch gcp_key.pub 
 
-echo 'nguyen@nguyensPC':$ssh_key > gcp_key.pub
+echo 'nguyen':$ssh_key > gcp_key.pub
 
 
 # upload key

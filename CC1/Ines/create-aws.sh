@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ami for image
-ami=ami-0f7f61182896079c9
+ami=ami-02d63d6d135e3f0f0
 
 
 #### 1)
