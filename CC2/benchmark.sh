@@ -27,7 +27,12 @@ diskSeq=$(sysbench --time=$runtime --file-test-mode=seqrd --file-total-size=1G -
 1>&2 echo "Running fileio random read test..."
 diskRand=$(sysbench --time=$runtime --file-test-mode=rndrd --file-total-size=1G --file-num=1 --file-extra-flags=direct fileio run | grep "read, MiB" | awk '/ [0-9.]*$/{print $NF}')
 
-iperf3 -c 192.168.0.192 --format m -P 5 -4 -t 5
+1>&2 echo "Running fork..."
+fork=$(./forkbench 0 10000)
+
+1>&2 echo "Running upLink..."
+upLink=$(iperf3 -c 192.168.122.1 --format m -P 5 -4 -t $runtime | grep "SUM" | awk '/sender/ {print $6}')
+
 
 # Output the benchmark results as one CSV line
-echo "$time,$cpu,$mem,$diskRand,$diskSeq"
+echo "$time,$cpu,$mem,$diskRand,$diskSeq,$fork,$upLink"
