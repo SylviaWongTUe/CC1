@@ -8,6 +8,7 @@ RUN chmod +x /forkbench.c
 
 
 RUN apt-get update
+RUN apt install bc -y
 RUN apt install build-essential -y
 RUN apt install iperf3 -y
 RUN apt install sysbench -y

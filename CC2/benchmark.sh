@@ -28,10 +28,23 @@ diskSeq=$(sysbench --time=$runtime --file-test-mode=seqrd --file-total-size=1G -
 diskRand=$(sysbench --time=$runtime --file-test-mode=rndrd --file-total-size=1G --file-num=1 --file-extra-flags=direct fileio run | grep "read, MiB" | awk '/ [0-9.]*$/{print $NF}')
 
 1>&2 echo "Running fork..."
-fork=$(./forkbench 0 10000)
+
+end=$((SECONDS+60))
+
+forkResTotal=0
+numIterations=0
+
+while [ $SECONDS -lt $end ]; do
+    currentForkRes=$(./forkbench 1 5000 2> /dev/null)
+    forkResTotal=$(echo "$forkResTotal + $currentForkRes" | bc)
+    numIterations=$(($numIterations + 1))
+done
+
+#calculate average
+fork=$(echo "$forkResTotal/$numIterations" | bc -l)
 
 1>&2 echo "Running upLink..."
-upLink=$(iperf3 -c 192.168.122.1 --format m -P 5 -4 -t $runtime | grep "SUM" | awk '/sender/ {print $6}')
+upLink=$(iperf3 -c 192.168.0.192 --format m -P 5 -4 -t $runtime | grep "SUM" | awk '/sender/ {print $6}')
 
 
 # Output the benchmark results as one CSV line
