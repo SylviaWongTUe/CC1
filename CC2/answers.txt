@@ -1,0 +1,52 @@
+1. Look at your benchmark results. Are they consistent with your expectations, regarding the different virtualization platforms? Explain your answer. What are the main reasons for the differences between the platforms? Answer these questions for all benchmarks:
+
+a. CPU
+Native - Avg. 1327.342
+Docker - Avg. 1395.532
+KVM    - Avg. 1342.954
+QEMU   - Avg.   139.111
+CPU benchmarks on native machine, Docker and KVM yield similar results. However, CPU on QEMU without KVM is much slower. These results meet our expectations. Because emulation of the CPU done by QEMU is software based, thus it applies noticeable overhead.
+
+b. Memory
+Native - Avg.  13079.150
+Docker - Avg.  11396.530
+KVM    - Avg.  11402.783
+QEMU  - Avg. 433.382 
+
+Similar to the results in CPU. (Transferred) Memory benchmarks on native machines, Docker and KVM yield similar results. However, memory access on QEMU compared to the others is obviously less. These results also meet our expectations. Because in the case of Qemu, shadow page tables are used. Every page fault leads to a so-called VM exit, i.e. switching the contexts from the guest to the host is quite expensive and thus the accessible memory is limited.
+
+c. Random disk access
+Native - Avg.  97.033 MiB
+Docker - Avg.  142.354 MiB
+KVM    - Avg.  244.798 MiB
+Qemu   - Avg. 76.563 MiB
+
+The result of Qemu is not surprising, as all of its emulations are performed in-software, it should be slow. However, the other results took us by surprise. We think the reason why KVM has the best performance is because it supports dynamic memory management. We suspect that the result of docker has a more poor performance may lie in its overlayfs file system and the fact that docker image was created for each benchmark run - if a new overlay is created on the first write, that would incur slight performance overhead. 
+
+d. Sequential disk access
+Native - Avg.  138.059 MiB
+Docker - Avg.  180.462 MiB
+KVM    - Avg.  262.546 MiB
+Qemu   - Avg. 77.239 MiB
+
+These results of KVM stay basically the same compared to the ones from random disk access, but for native machine and Docker, their performances are slightly improved. Unsurprisingly, the native machine and Docker seem to have a much better performance on the sequential read task, we anticipate the reason behind lies in compared to random tasks, there is less processing that the memory controller needs to do for sequential tasks on, which leads to its favors sequential tasks more on than the random tasks.
+
+e. Fork
+Native - Avg.  2551.065
+Docker - Avg.  2437.115
+KVM    - Avg.  2578.18
+Qemu   - Avg. 493.600
+
+From the results we can see that there are no obvious differences on native machines, Docker and KVM. These are what we expected. In the case of Qemu, it has privileged instructions, which when using a fork, it has to be trapped and emulated, thus causing a poor performance.
+
+f. iperf uplink
+Native - Avg.  51563.8
+Docker - Avg.  42147.3
+KVM    - Avg.  31022.3
+Qemu   - Avg. 3058.2
+
+As expected native and docker are the fastest.  The performance degradation in qemu is easily explained by the choice of networking backend used - User Networking (SLIRP) - this networking backend doesn't require any root privileges and is easiest to use, but adds a lot of overhead.
+
+2. Choose the guest system with the highest uplink deviation compared to the native execution and rerun the iperf3 benchmark using a public iperf3 server. Run the same experiment using the host as a client (and the same public iperf3 server). Could the results from Task 3 be reproduced? Why? Why not?
+
+No, we cannot reproduce the results from Task 3 anymore. It is obvious to see that there are larger latencies on public servers and the speed is accordingly low. As we analyze, the results lie in the communication between host and guest. Compared to the local machine which can directly handle the tasks between guest and host, using a public server will need to have more communication delay when transferring tasks through the network.
